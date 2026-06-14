@@ -1,4 +1,13 @@
 # MAC Billing
+## Demo
+
+Demo aplikasi tersedia di:
+
+```text
+http://202.10.41.241:8090
+admin/password
+kasir/password
+teknisi/password
 
 MAC Billing adalah aplikasi billing berbasis Laravel untuk manajemen pelanggan, paket layanan, invoice, pembayaran, kolektor, teknisi, ODP, dan laporan operasional.
 
