@@ -1,0 +1,28 @@
+MAC Billing Clean Package Report
+
+Paket ini dibuat dari source terbaru yang sudah diextract dari GitHub, lalu dibersihkan ulang.
+
+Dihapus/tidak disertakan:
+- .env dan semua .env.* lama selain .env.example baru
+- database SQLite aktif dan backup database
+- storage/app/backups
+- storage/backups
+- storage/logs dan log runtime
+- public/uploads dan public/storage runtime
+- file ZIP lama
+- file .bak, .backup, .old, .log
+- folder .github/workflows lama
+
+Tetap disertakan:
+- source Laravel
+- migrations dan seeders
+- public/build assets
+- public/assets icons
+- logo MACNET di storage/app/public/settings/macnet-logo.png
+- .env.example baru yang kosong dari secret
+- .gitignore baru yang lebih ketat
+- README deploy fresh
+
+Catatan:
+- Jika repository lama pernah memuat file sensitif, hapus repository lama agar riwayat commit ikut hilang.
+- Setelah deploy fresh, langsung ubah password user default.
