@@ -1,0 +1,105 @@
+name: Unzip Billing Source
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "*.zip"
+      - ".github/workflows/unzip-source.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract ZIP
+        run: |
+          set -e
+
+          ZIP_FILE=$(ls *.zip | head -n 1)
+          echo "ZIP file: $ZIP_FILE"
+
+          rm -rf /tmp/macbilling_extract
+          mkdir -p /tmp/macbilling_extract
+          unzip -q "$ZIP_FILE" -d /tmp/macbilling_extract
+
+          if [ -d /tmp/macbilling_extract/macbilling ]; then
+            SRC="/tmp/macbilling_extract/macbilling"
+          else
+            SRC=$(find /tmp/macbilling_extract -mindepth 1 -maxdepth 1 -type d | head -n 1)
+          fi
+
+          echo "Source folder: $SRC"
+
+          rm -rf app bootstrap config database public resources routes tests storage
+          rm -f artisan composer.json composer.lock package.json package-lock.json vite.config.js phpunit.xml server.php webpack.mix.js
+
+          rsync -a \
+            --exclude=".env" \
+            --exclude=".git" \
+            --exclude="vendor" \
+            --exclude="node_modules" \
+            --exclude="database/*.sqlite" \
+            --exclude="database/*.db" \
+            --exclude="storage/logs/*" \
+            --exclude="storage/framework/cache/*" \
+            --exclude="storage/framework/sessions/*" \
+            --exclude="storage/framework/views/*" \
+            "$SRC"/ ./
+
+          mkdir -p storage/app
+          mkdir -p storage/framework/cache
+          mkdir -p storage/framework/sessions
+          mkdir -p storage/framework/views
+          mkdir -p storage/logs
+          mkdir -p bootstrap/cache
+          mkdir -p database
+
+          touch storage/app/.gitkeep
+          touch storage/framework/cache/.gitkeep
+          touch storage/framework/sessions/.gitkeep
+          touch storage/framework/views/.gitkeep
+          touch storage/logs/.gitkeep
+          touch bootstrap/cache/.gitkeep
+          touch database/.gitkeep
+
+      - name: Create gitignore
+        run: |
+          printf '%s\n' "/vendor" > .gitignore
+          printf '%s\n' "/node_modules" >> .gitignore
+          printf '%s\n' "/.env" >> .gitignore
+          printf '%s\n' "/.env.backup" >> .gitignore
+          printf '%s\n' "/.env.production" >> .gitignore
+          printf '%s\n' "/database/*.sqlite" >> .gitignore
+          printf '%s\n' "/database/*.db" >> .gitignore
+          printf '%s\n' "/storage/logs/*" >> .gitignore
+          printf '%s\n' "/storage/framework/cache/*" >> .gitignore
+          printf '%s\n' "/storage/framework/sessions/*" >> .gitignore
+          printf '%s\n' "/storage/framework/views/*" >> .gitignore
+          printf '%s\n' "!/storage/logs/.gitkeep" >> .gitignore
+          printf '%s\n' "!/storage/framework/cache/.gitkeep" >> .gitignore
+          printf '%s\n' "!/storage/framework/sessions/.gitkeep" >> .gitignore
+          printf '%s\n' "!/storage/framework/views/.gitkeep" >> .gitignore
+          printf '%s\n' "/bootstrap/cache/*" >> .gitignore
+          printf '%s\n' "!/bootstrap/cache/.gitkeep" >> .gitignore
+          printf '%s\n' "/public/storage" >> .gitignore
+
+      - name: Commit extracted source
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+          git add .
+
+          if git diff --cached --quiet; then
+            echo "Tidak ada perubahan"
+          else
+            git commit -m "Extract Laravel billing source"
+            git push
+          fi
