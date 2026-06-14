@@ -1,9 +1,7 @@
-# MAC Billing
-## Demo
+## MAC Billing
 
-Demo aplikasi tersedia di:
+# Demo aplikasi tersedia di:
 
-```text
 http://202.10.41.241:8090
 admin/password
 kasir/password
